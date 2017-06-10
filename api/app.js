@@ -3,6 +3,7 @@ const express = require('express')
 const multer = require('multer')
 const clarifay = require('./clarifay')
 const fs = require('fs');
+const Image = require('../db')
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -16,7 +17,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage })
 const app = express()
 
-app.post('/photos/upload', upload.array('photos'), function (req, res, next) {
+app.post('/photos/upload', upload.array('photos'), (req, res, next) => {
   const message = { "data": [] }
   req.files.forEach(image => {
     fs.readFile(image.path, function (err, data) {
@@ -25,12 +26,14 @@ app.post('/photos/upload', upload.array('photos'), function (req, res, next) {
         .analyse(new Buffer(data).toString('base64'))
         .then(
         response => {
-          message.data.push({
-            'image': {
-              'path': image.path,
-              'tags': serialize(response.outputs[0].data.concepts)
-            }
-          })
+          const imageObject = {
+            'path': image.path,
+            'tags': serialize(response.outputs[0].data.concepts)
+          }
+          message.data.push(imageObject)
+          // save in db
+          const imageData = new Image(imageObject)
+          imageData.save()
           // if every image has been proccessed send back the response
           if (message.data.length == req.files.length) {
             res.status(200).send(message)
@@ -40,6 +43,16 @@ app.post('/photos/upload', upload.array('photos'), function (req, res, next) {
         );
     });
   })
+})
+
+// get all images
+app.get('/photos', (req, res, next) => {
+  Image.find({}, (err, images) => res.send(images))
+})
+
+// get images by tags
+app.get('/photos/:tag', (req, res, next) => {
+  Image.find({ tags: req.params.tag }, (err, images) => res.send(images))
 })
 
 // get the tags from the Clarifay API

@@ -12,6 +12,6 @@ class ImageProcessing extends Clarifai.App {
 
 // instantiate a new Clarifai app passing in your clientId and clientSecret
 module.exports = new ImageProcessing(
-    'VBnMOmN6f2PLzIQGHdc9Dk_dcRSxXMdsvxGoageF',
-    '2vY4Nnbuts_HhfWoROt757rRJG3c--zsHvOfNnuK'
+    'clientId',
+    'clientSecret'
 )

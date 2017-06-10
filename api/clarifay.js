@@ -1,3 +1,4 @@
+// content of api/clarifay.js
 var Clarifai = require('clarifai');
 
 // extends the Clarifai.App
